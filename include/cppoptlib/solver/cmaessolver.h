@@ -12,7 +12,7 @@ namespace cppoptlib {
  * @brief Covariance Matrix Adaptation
  */
 template<typename T>
-class CMAesSolver : public ISolver<T, 1> {
+class CMAesSolver : public ISolver<T, 0> {
   // random number generator
   // http://stackoverflow.com/questions/14732132/global-initialization-with-temporary-function-object
   // we construct this in the constructor
@@ -65,6 +65,30 @@ class CMAesSolver : public ISolver<T, 1> {
     Eigen::MatrixXd samples = normTransform * stdNormDistr + mean;
 
     return samples;
+  }
+
+  Vector<T> sampleMvnWithNormTransform(Vector<T> &mean, Matrix<T> &normTransform) {
+
+    Vector<T> stdNormDistr = Vector<T>::Zero(mean.rows());
+    std::normal_distribution<> d(0, 1);
+    for (int i = 0; i < mean.rows(); ++i) {
+      stdNormDistr[i] = d(gen);
+    }
+
+    Eigen::MatrixXd samples = normTransform * stdNormDistr + mean;
+
+    return samples;
+  }
+
+  void getNormTransform( Matrix<T> &covar, Matrix<T> &normTransform) {
+    Eigen::LLT<Eigen::MatrixXd> cholSolver(covar);
+
+    if (cholSolver.info() == Eigen::Success) {
+      normTransform = cholSolver.matrixL();
+    } else {
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigenSolver(covar);
+      normTransform = eigenSolver.eigenvectors() * eigenSolver.eigenvalues().cwiseSqrt().asDiagonal();
+    }
   }
 
  public:
@@ -145,9 +169,11 @@ class CMAesSolver : public ISolver<T, 1> {
     for (size_t curIter = 0; curIter < this->settings_.maxIter; ++curIter) {
       std::vector<individual> pop;
 
+      Matrix<T> normTrans = C.eval();
+      getNormTransform(C,normTrans);
       for (int i = 0; i < populationSize; ++i) {
         individual curInd;
-        curInd.step = sampleMvn(zeroVectorTemplate, C).eval();
+        curInd.step = sampleMvnWithNormTransform(zeroVectorTemplate, normTrans).eval();
         curInd.pos = M.pos + sigma * curInd.step;
         curInd.cost = objFunc(curInd.pos);
 

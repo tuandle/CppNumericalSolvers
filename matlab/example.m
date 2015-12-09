@@ -6,7 +6,7 @@ fprintf('--------------------------------------------------------------------\n'
 
 %% --------------------------------------------------------------------------------
 fprintf('\n(finite gradient)\n')
-solver = {'gradientdescent','cg','bfgs','l-bfgs','newton'};
+solver = {'gradientdescent','cg','bfgs','l-bfgs','newton','cmaes','neldermead'};
 for s=1:numel(solver)
   tic
   [fx,x] = cppoptlib(x0,@rosenbrock,'solver',solver{s});
