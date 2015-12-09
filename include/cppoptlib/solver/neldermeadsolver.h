@@ -19,11 +19,9 @@ class NelderMeadSolver : public ISolver<T, 0> {
    */
   void minimize(Problem<T> &objFunc, Vector<T> & x) {
 
-
     const T rho = 1.;    // rho > 0
     const T xi  = 2.;    // xi  > max(rho, 1)
     const T gam = 0.5;   // 0 < gam < 1
-
 
     const size_t DIM = x.rows();
 
@@ -43,7 +41,6 @@ class NelderMeadSolver : public ISolver<T, 0> {
       }
     }
 
-
     // compute function values
     std::vector<T> f; f.resize(DIM + 1);
     std::vector<int> index; index.resize(DIM + 1);
@@ -52,7 +49,7 @@ class NelderMeadSolver : public ISolver<T, 0> {
       index[i] = i;
     }
 
-    sort(index.begin(), index.end(), [&](int a, int b)-> bool{ return f[a] < f[b]; });
+    sort(index.begin(), index.end(), [&](int a, int b)-> bool { return f[a] < f[b]; });
 
     int iter = 0;
     const int maxIter = this->settings_.maxIter*DIM;
@@ -70,8 +67,10 @@ class NelderMeadSolver : public ISolver<T, 0> {
         if (tmp2 > max2)
           max2 = tmp2;
       }
-      const T tt1 = std::max(1.e-04, 10 * std::nextafter<T>(f[index[0]], std::numeric_limits<T>::epsilon()) - f[index[0]]);
-      const T tt2 = std::max(1.e-04, 10 * (std::nextafter<T>(x0.col(index[0]).maxCoeff(), std::numeric_limits<T>::epsilon()) - x0.col(index[0]).maxCoeff()));
+
+      const T tt1 = std::max(static_cast<T>(1.e-04), 10 * std::nextafter<T>(f[index[0]], std::numeric_limits<T>::epsilon()) - f[index[0]]);
+      const T tt2 = std::max(static_cast<T>(1.e-04), 10 * (std::nextafter<T>(x0.col(index[0]).maxCoeff(), std::numeric_limits<T>::epsilon())
+                    - x0.col(index[0]).maxCoeff()));
 
       // max(||x - shift(x) ||_inf ) <= tol,
       if (max1 <=  tt1) {
@@ -107,7 +106,7 @@ class NelderMeadSolver : public ISolver<T, 0> {
           x0.col(index[DIM]) = x_r;
           f[index[DIM]] = f_r;
         }
-      } else { 
+      } else {
         if ( f_r < f[index[DIM]] ) {
           x0.col(index[DIM]) = x_r;
           f[index[DIM]] = f_r;
@@ -136,7 +135,7 @@ class NelderMeadSolver : public ISolver<T, 0> {
           }
         }
       }
-      sort(index.begin(), index.end(), [&](int a, int b)-> bool{ return f[a] < f[b]; });
+      sort(index.begin(), index.end(), [&](int a, int b)-> bool { return f[a] < f[b]; });
       iter++;
     }
     x = x0.col(index[0]);
