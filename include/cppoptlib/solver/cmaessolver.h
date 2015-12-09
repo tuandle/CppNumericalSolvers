@@ -170,7 +170,7 @@ class CMAesSolver : public ISolver<T, 0> {
       std::vector<individual> pop;
 
       Matrix<T> normTrans = C.eval();
-      getNormTransform(C,normTrans);
+      getNormTransform(C, normTrans);
       for (int i = 0; i < populationSize; ++i) {
         individual curInd;
         curInd.step = sampleMvnWithNormTransform(zeroVectorTemplate, normTrans).eval();
